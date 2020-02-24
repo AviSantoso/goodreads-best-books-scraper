@@ -11,9 +11,7 @@ const getSortedList = async topic => {
   );
   const $ = cheerio.load(website.data);
   const leftContainer = $(".leftContainer")[0];
-  const elements = $(leftContainer)
-    .find(".elementList")
-    .slice(0, 30);
+  const elements = $(leftContainer).find(".elementList");
   for (let i = 0; i < elements.length; i++) {
     const element = elements[i];
     const bookTitle = $($(element).find(".bookTitle")[0]).text();
@@ -23,17 +21,31 @@ const getSortedList = async topic => {
       .map(x => x.trim())
       .slice(1, 4);
     const bookRating = bookDetails[0].slice(11, 15);
+    const publishedYear = bookDetails[2].slice(10);
     bookItems.push({
       title: bookTitle,
-      rating: bookRating
+      rating: bookRating,
+      published: publishedYear
     });
   }
-  const sortedList = _.reverse(_.sortBy(bookItems, x => x.rating)).slice(0, 15);
+  const sortedList = _.reverse(
+    _.sortBy(
+      bookItems
+        .filter(
+          x =>
+            x.title.indexOf("Kindle") == -1 &&
+            x.title.indexOf("ebook") == -1 &&
+            x.published >= 2000
+        )
+        .slice(0, 25),
+      x => x.rating
+    )
+  );
   return sortedList;
 };
 
 const main = async () => {
-  const topics = ["startup", "sales", "marketing"];
+  const topics = ["marketing", "sales"];
   topics.forEach(async topic => {
     let sortedList = await getSortedList(topic);
     let data =
